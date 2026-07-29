@@ -1,14 +1,24 @@
+import Logo from "@/components/common/logo";
+import { Button } from "@/components/ui/button";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold tracking-tight">
-          IntelliDSA
-        </h1>
+    <main className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-6 text-center">
+        <Logo />
 
-        <p className="mt-4 text-lg text-slate-400">
-          AI-powered DSA Learning Platform
+        <h2 className="max-w-2xl text-5xl font-bold tracking-tight">
+          Master DSA with AI
+        </h2>
+
+        <p className="max-w-xl text-muted-foreground">
+          Track problems, schedule revisions, analyze your progress,
+          and receive personalized AI-powered learning insights.
         </p>
+
+        <Button size="lg">
+          Get Started
+        </Button>
       </div>
     </main>
   );
