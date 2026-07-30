@@ -1,6 +1,7 @@
 import StatCard from "@/components/dashboard/stat-card";
 import { dashboardStats } from "@/constants/dashboard";
 import Greeting from "@/components/dashboard/greeting";
+import WeeklyChart from "@/components/dashboard/weekly-chart";
 
 export default function DashboardPage() {
   return (
@@ -18,6 +19,7 @@ export default function DashboardPage() {
           />
         ))}
       </div>
+      <WeeklyChart />
     </div>
   );
 }
