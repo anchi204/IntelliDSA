@@ -2,13 +2,18 @@ import { problems } from "@/constants/problems";
 import ProblemCard from "@/components/problems/problem-card";
 import ProblemSearch from "@/components/problems/problem-search";
 import FilterBar from "@/components/problems/filter-bar";
+import AddProblemDialog from "@/components/problems/add-problem-dialog";
 
 export default function ProblemsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">
-        Problems
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-4xl font-bold">
+          Problems
+        </h1>
+
+        <AddProblemDialog />
+      </div>
 
       {/* Search & Filters */}
       <div className="space-y-4">
