@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "@/components/common/logo";
 import {
   LayoutDashboard,
   BookOpen,
@@ -43,9 +44,9 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 border-r h-screen p-6">
-      <h1 className="text-2xl font-bold mb-8">
-        IntelliDSA
-      </h1>
+      <div className="mb-8">
+        <Logo />
+      </div>
 
       <div className="space-y-2">
         {links.map((link) => {
