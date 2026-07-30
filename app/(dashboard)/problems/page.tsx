@@ -1,10 +1,19 @@
+"use client";
 import { problems } from "@/constants/problems";
 import ProblemCard from "@/components/problems/problem-card";
 import ProblemSearch from "@/components/problems/problem-search";
 import FilterBar from "@/components/problems/filter-bar";
 import AddProblemDialog from "@/components/problems/add-problem-dialog";
+import { useMemo, useState } from "react";
 
 export default function ProblemsPage() {
+  const [search, setSearch] = useState("");
+
+  const filteredProblems = useMemo(() => {
+    return problems.filter((problem) =>
+      problem.title.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search]);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -17,13 +26,16 @@ export default function ProblemsPage() {
 
       {/* Search & Filters */}
       <div className="space-y-4">
-        <ProblemSearch />
+        <ProblemSearch
+          value={search}
+          onChange={setSearch}
+        />
         <FilterBar />
       </div>
 
       {/* Problems List */}
       <div className="grid gap-6">
-        {problems.map((problem) => (
+        {filteredProblems.map((problem) => (
           <ProblemCard
             key={problem.id}
             problem={problem}

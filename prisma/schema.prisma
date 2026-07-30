@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Problem {
+  id           Int       @id @default(autoincrement())
+  title        String
+  platform     String
+  difficulty   String
+  topic        String
+  solved       Boolean   @default(false)
+  favorite     Boolean   @default(false)
+  revisionDate DateTime?
+  notes        String?
+  createdAt    DateTime  @default(now())
+}

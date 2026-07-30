@@ -17,8 +17,10 @@ export default function AddProblemDialog() {
 
   return (
     <Dialog>
-      <DialogTrigger>
-        <Button>Add Problem</Button>
+      <DialogTrigger
+        render={<Button />}
+        >
+        Add Problem
       </DialogTrigger>
 
       <DialogContent>
