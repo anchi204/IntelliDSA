@@ -59,10 +59,10 @@ export default function Sidebar() {
               className={`flex items-center gap-3 rounded-lg px-4 py-3 transition ${
                 pathname === link.href
                   ? "bg-primary text-white"
-                  : "hover:bg-muted"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <Icon size={20} />
+              <Icon className="h-5 w-5" />
               {link.name}
             </Link>
           );

@@ -20,13 +20,13 @@ export default function StatCard({
   subtitle,
 }: StatCardProps) {
   return (
-    <Card className="hover:shadow-lg transition-all">
+    <Card className="transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-sm text-muted-foreground">
           {title}
         </CardTitle>
 
-        <Icon className="h-5 w-5 text-violet-500" />
+        <Icon className="h-8 w-8 text-violet-500" />
       </CardHeader>
 
       <CardContent>
