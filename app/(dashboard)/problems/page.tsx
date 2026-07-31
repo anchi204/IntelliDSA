@@ -1,19 +1,32 @@
 "use client";
-import { problems } from "@/constants/problems";
 import ProblemCard from "@/components/problems/problem-card";
 import ProblemSearch from "@/components/problems/problem-search";
 import FilterBar from "@/components/problems/filter-bar";
 import AddProblemDialog from "@/components/problems/add-problem-dialog";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 export default function ProblemsPage() {
   const [search, setSearch] = useState("");
+  const [problems, setProblems] = useState<any[]>([]);
 
+  const fetchProblems = async () => {
+    try {
+      const res = await fetch("/api/problems");
+      const data = await res.json();
+      setProblems(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProblems();
+  }, []);
   const filteredProblems = useMemo(() => {
     return problems.filter((problem) =>
       problem.title.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search]);
+  }, [search, problems]);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -21,7 +34,7 @@ export default function ProblemsPage() {
           Problems
         </h1>
 
-        <AddProblemDialog />
+        <AddProblemDialog onProblemAdded={fetchProblems} />
       </div>
 
       {/* Search & Filters */}

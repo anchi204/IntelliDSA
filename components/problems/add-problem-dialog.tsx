@@ -12,8 +12,45 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export default function AddProblemDialog() {
+export default function AddProblemDialog({
+    onProblemAdded,
+  }: {
+    onProblemAdded: () => void;
+  }) {
   const [title, setTitle] = useState("");
+  const [platform, setPlatform] = useState("");
+  const [topic, setTopic] = useState("");
+  const [difficulty, setDifficulty] = useState("Easy");
+
+
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch("/api/problems", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          platform,
+          topic,
+          difficulty,
+        }),
+      });
+
+      const data = await res.json();
+
+      console.log(data);
+
+      setTitle("");
+      setPlatform("");
+      setTopic("");
+      onProblemAdded();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   return (
     <Dialog>
@@ -40,15 +77,42 @@ export default function AddProblemDialog() {
 
           <div>
             <Label>Platform</Label>
-            <Input placeholder="LeetCode" />
+            <Input
+              placeholder="LeetCode"
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+            />
           </div>
 
           <div>
-            <Label>Topic</Label>
-            <Input placeholder="Array" />
+            <div>
+              <Label>Topic</Label>
+              <Input
+                placeholder="Array"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label>Difficulty</Label>
+              <Input
+                placeholder="Easy"
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+              />
+            </div>
+            <Input
+              placeholder="Array"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
           </div>
 
-          <Button className="w-full">
+          <Button 
+            className="w-full"
+            onClick={handleSubmit}
+          >
             Save Problem
           </Button>
         </div>
