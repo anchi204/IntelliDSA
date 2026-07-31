@@ -1,6 +1,6 @@
 import { Problem } from "@/types/problem";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star } from "lucide-react";
+import { Star, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Props {
@@ -8,6 +8,17 @@ interface Props {
 }
 
 export default function ProblemCard({ problem }: Props) {
+  const handleDelete = async () => {
+    try {
+      await fetch(`/api/problems/${problem.id}`, {
+        method: "DELETE",
+      });
+
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardContent className="p-6">
@@ -22,13 +33,20 @@ export default function ProblemCard({ problem }: Props) {
             </p>
           </div>
 
-          <Star
-            className={`h-5 w-5 ${
-              problem.favorite
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-400"
-            }`}
-          />
+          <div className="flex items-center gap-3">
+            <Star
+              className={`h-5 w-5 ${
+                problem.favorite
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "text-gray-400"
+              }`}
+            />
+
+            <Trash2
+              className="h-5 w-5 text-red-500 cursor-pointer"
+              onClick={handleDelete}
+            />
+          </div>
         </div>
 
         <div className="mt-5 flex gap-3">
