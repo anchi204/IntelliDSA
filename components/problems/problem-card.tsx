@@ -1,7 +1,8 @@
 import { Problem } from "@/types/problem";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, Trash2 } from "lucide-react";
+import { Star, Trash2, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import EditProblemDialog from "./edit-problem-dialog";
 
 interface Props {
   problem: Problem;
@@ -9,9 +10,49 @@ interface Props {
 
 export default function ProblemCard({ problem }: Props) {
   const handleDelete = async () => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this problem?"
+    );
+
+    if (!confirmDelete) return;
+
     try {
       await fetch(`/api/problems/${problem.id}`, {
         method: "DELETE",
+      });
+
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleFavorite = async () => {
+    try {
+      await fetch(`/api/problems/${problem.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          favorite: !problem.favorite,
+        }),
+      });
+
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleSolved = async () => {
+    try {
+      await fetch(`/api/problems/${problem.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          solved: !problem.solved,
+        }),
       });
 
       window.location.reload();
@@ -35,13 +76,14 @@ export default function ProblemCard({ problem }: Props) {
 
           <div className="flex items-center gap-3">
             <Star
-              className={`h-5 w-5 ${
+              onClick={handleFavorite}
+              className={`h-5 w-5 cursor-pointer ${
                 problem.favorite
                   ? "fill-yellow-400 text-yellow-400"
                   : "text-gray-400"
               }`}
             />
-
+            <EditProblemDialog problem={problem} />
             <Trash2
               className="h-5 w-5 text-red-500 cursor-pointer"
               onClick={handleDelete}
@@ -62,13 +104,23 @@ export default function ProblemCard({ problem }: Props) {
             {problem.difficulty}
           </Badge>
 
-          <Badge variant={problem.solved ? "default" : "secondary"}>
+          <Badge
+            className={
+              problem.solved
+                ? "bg-green-500 cursor-pointer"
+                : "bg-gray-500 cursor-pointer"
+            }
+            onClick={handleSolved}
+          >
             {problem.solved ? "Solved" : "Unsolved"}
           </Badge>
         </div>
 
         <p className="mt-4 text-sm text-muted-foreground">
-          Revision: {problem.revisionDate}
+          Revision:{" "}
+          {problem.revisionDate
+            ? new Date(problem.revisionDate).toLocaleDateString()
+            : "Not Set"}
         </p>
       </CardContent>
     </Card>
