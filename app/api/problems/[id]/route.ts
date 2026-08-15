@@ -29,6 +29,7 @@ export async function DELETE(
     );
   }
 }
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -41,11 +42,104 @@ export async function PATCH(
       ...body,
     };
 
-    // If solved status is being changed,
-    // automatically update solvedAt
+    // --------------------------------
+    // SOLVED / UNSOLVED
+    // --------------------------------
+
     if (typeof body.solved === "boolean") {
-      data.solvedAt = body.solved ? new Date() : null;
+      if (body.solved) {
+        const solvedAt = new Date();
+
+        data.solvedAt = solvedAt;
+        data.revisionCount = 0;
+
+        // Medium → 3 revisions, every 4 days
+        if (body.difficulty === "Medium") {
+          data.maxRevisions = 3;
+
+          const revisionDate = new Date(solvedAt);
+          revisionDate.setDate(revisionDate.getDate() + 4);
+
+          data.revisionDate = revisionDate;
+        }
+
+        // Hard → 5 revisions, every 4 days
+        else if (body.difficulty === "Hard") {
+          data.maxRevisions = 5;
+
+          const revisionDate = new Date(solvedAt);
+          revisionDate.setDate(revisionDate.getDate() + 4);
+
+          data.revisionDate = revisionDate;
+        }
+
+        // Easy → no revision
+        else {
+          data.maxRevisions = 0;
+          data.revisionDate = null;
+        }
+      } else {
+        // Problem marked unsolved
+
+        data.solvedAt = null;
+        data.revisionDate = null;
+        data.revisionCount = 0;
+        data.maxRevisions = 0;
+      }
     }
+
+    // --------------------------------
+    // REVISION DONE
+    // --------------------------------
+
+    if (body.revisionDone === true) {
+      const currentProblem = await prisma.problem.findUnique({
+        where: {
+          id: Number(id),
+        },
+      });
+
+      if (!currentProblem) {
+        return NextResponse.json(
+          { message: "Problem not found" },
+          { status: 404 }
+        );
+      }
+
+      // No revision is currently scheduled
+      if (!currentProblem.revisionDate) {
+        return NextResponse.json(
+          { message: "No revision scheduled" },
+          { status: 400 }
+        );
+      }
+
+      const nextRevisionCount = currentProblem.revisionCount + 1;
+
+      data.revisionCount = nextRevisionCount;
+
+      // Maximum revisions completed
+      if (nextRevisionCount >= currentProblem.maxRevisions) {
+        data.revisionDate = null;
+      }
+
+      // More revisions remaining
+      else {
+        const nextRevisionDate = new Date(
+          currentProblem.revisionDate
+        );
+
+        nextRevisionDate.setDate(
+          nextRevisionDate.getDate() + 4
+        );
+
+        data.revisionDate = nextRevisionDate;
+      }
+    }
+
+    // --------------------------------
+    // UPDATE DATABASE
+    // --------------------------------
 
     const updatedProblem = await prisma.problem.update({
       where: {
@@ -59,7 +153,9 @@ export async function PATCH(
     console.error("PATCH ERROR:", error);
 
     return NextResponse.json(
-      { message: "Failed to update problem" },
+      {
+        message: "Failed to update problem",
+      },
       { status: 500 }
     );
   }

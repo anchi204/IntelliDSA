@@ -53,13 +53,16 @@ export default function ProblemCard({ problem }: Props) {
 };
   const handleSolved = async () => {
   try {
+    const newSolvedStatus = !problem.solved;
+
     const response = await fetch(`/api/problems/${problem.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        solved: !problem.solved,
+        solved: newSolvedStatus,
+        difficulty: problem.difficulty,
       }),
     });
 
@@ -72,6 +75,28 @@ export default function ProblemCard({ problem }: Props) {
     console.error("Solved error:", error);
   }
 };
+const handleRevisionDone = async () => {
+  try {
+    const response = await fetch(`/api/problems/${problem.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        revisionDone: true,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to complete revision");
+    }
+
+    window.location.reload();
+  } catch (error) {
+    console.error("Revision error:", error);
+  }
+};
+
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardContent className="p-6">
@@ -128,12 +153,47 @@ export default function ProblemCard({ problem }: Props) {
           </Badge>
         </div>
 
-        <p className="mt-4 text-sm text-muted-foreground">
-          Revision:{" "}
-          {problem.revisionDate
-            ? new Date(problem.revisionDate).toLocaleDateString()
-            : "Not Set"}
-        </p>
+        <div className="mt-4 text-sm">
+          {problem.difficulty === "Easy" ? (
+            <p className="text-muted-foreground">
+              No revision scheduled
+            </p>
+          ) : problem.revisionDate ? (
+            <p
+              className={
+                new Date(problem.revisionDate) <= new Date()
+                  ? "font-medium text-red-500"
+                  : "font-medium text-green-500"
+              }
+            >
+              {new Date(problem.revisionDate) <= new Date()
+                ? "🔴 Revision due"
+                : `📅 Next revision: ${new Date(
+                    problem.revisionDate
+                  ).toLocaleDateString()}`}
+            </p>
+          ) : (
+            <p className="text-muted-foreground">
+              Revision not scheduled
+            </p>
+          )}
+        </div>
+        {problem.maxRevisions > 0 && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Revision {problem.revisionCount} / {problem.maxRevisions}
+          </p>
+        )}
+
+        {problem.revisionDate &&
+          new Date(problem.revisionDate) <= new Date() &&
+          problem.revisionCount < problem.maxRevisions && (
+            <button
+              onClick={handleRevisionDone}
+              className="mt-3 rounded-md bg-blue-500 px-3 py-2 text-sm text-white hover:bg-blue-600"
+            >
+              ✓ Revision Done
+            </button>
+          )}
       </CardContent>
     </Card>
   );

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Problem" ADD COLUMN     "maxRevisions" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "revisionCount" INTEGER NOT NULL DEFAULT 0;

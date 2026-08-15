@@ -39,7 +39,7 @@ export default function EditProblemDialog({ problem }: Props) {
           platform,
           topic,
           difficulty,
-          revisionDate,
+          revisionDate: revisionDate || null,
         }),
       });
 

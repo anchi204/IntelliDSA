@@ -15,8 +15,12 @@ model Problem {
   topic        String
   solved       Boolean   @default(false)
   favorite     Boolean   @default(false)
+
   revisionDate DateTime?
+  revisionCount Int      @default(0)
+  maxRevisions  Int      @default(0)
+
+  solvedAt     DateTime?
   notes        String?
   createdAt    DateTime  @default(now())
-  solvedAt     DateTime?
 }

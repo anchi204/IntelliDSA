@@ -7,4 +7,6 @@ export interface Problem {
   solved: boolean;
   favorite: boolean;
   revisionDate: string;
+  revisionCount: number;
+  maxRevisions: number;
 }
