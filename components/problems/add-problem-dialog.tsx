@@ -12,20 +12,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export default function AddProblemDialog({
-    onProblemAdded,
-  }: {
-    onProblemAdded: () => void;
-  }) {
+export default function AddProblemDialog() {
   const [title, setTitle] = useState("");
-  const [platform, setPlatform] = useState("");
-  const [topic, setTopic] = useState("");
+  const [platform, setPlatform] = useState("LeetCode");
   const [difficulty, setDifficulty] = useState("Easy");
+  const [topic, setTopic] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
 
-  const handleSubmit = async () => {
+    if (!title || !topic) return;
+
+    setLoading(true);
+
     try {
-      const res = await fetch("/api/problems", {
+      const response = await fetch("/api/problems", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,39 +35,43 @@ export default function AddProblemDialog({
         body: JSON.stringify({
           title,
           platform,
-          topic,
           difficulty,
+          topic,
         }),
       });
 
-      const data = await res.json();
-
-      console.log(data);
+      if (!response.ok) {
+        throw new Error("Failed to create problem");
+      }
 
       setTitle("");
-      setPlatform("");
       setTopic("");
-      onProblemAdded();
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add problem");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <Dialog>
       <DialogTrigger
-        render={<Button />}
-        >
-        Add Problem
-      </DialogTrigger>
+        render={
+          <Button>
+            Add Problem
+          </Button>
+        }
+      />
 
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Problem</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>Problem Name</Label>
             <Input
@@ -78,30 +84,21 @@ export default function AddProblemDialog({
           <div>
             <Label>Platform</Label>
             <Input
-              placeholder="LeetCode"
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
             />
           </div>
 
           <div>
-            <div>
-              <Label>Topic</Label>
-              <Input
-                placeholder="Array"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-              />
-            </div>
+            <Label>Difficulty</Label>
+            <Input
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+            />
+          </div>
 
-            <div>
-              <Label>Difficulty</Label>
-              <Input
-                placeholder="Easy"
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
-              />
-            </div>
+          <div>
+            <Label>Topic</Label>
             <Input
               placeholder="Array"
               value={topic}
@@ -109,13 +106,10 @@ export default function AddProblemDialog({
             />
           </div>
 
-          <Button 
-            className="w-full"
-            onClick={handleSubmit}
-          >
-            Save Problem
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Saving..." : "Save Problem"}
           </Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

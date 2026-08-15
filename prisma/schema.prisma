@@ -18,4 +18,5 @@ model Problem {
   revisionDate DateTime?
   notes        String?
   createdAt    DateTime  @default(now())
+  solvedAt     DateTime?
 }

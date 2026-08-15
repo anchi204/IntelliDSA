@@ -37,11 +37,21 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
+    const data: any = {
+      ...body,
+    };
+
+    // If solved status is being changed,
+    // automatically update solvedAt
+    if (typeof body.solved === "boolean") {
+      data.solvedAt = body.solved ? new Date() : null;
+    }
+
     const updatedProblem = await prisma.problem.update({
       where: {
         id: Number(id),
       },
-      data: body,
+      data,
     });
 
     return NextResponse.json(updatedProblem);

@@ -10,56 +10,68 @@ interface Props {
 
 export default function ProblemCard({ problem }: Props) {
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this problem?"
-    );
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this problem?"
+  );
 
-    if (!confirmDelete) return;
+  if (!confirmDelete) return;
 
-    try {
-      await fetch(`/api/problems/${problem.id}`, {
-        method: "DELETE",
-      });
+  try {
+    const response = await fetch(`/api/problems/${problem.id}`, {
+      method: "DELETE",
+    });
 
-      window.location.reload();
-    } catch (error) {
-      console.log(error);
+    if (!response.ok) {
+      throw new Error("Failed to delete problem");
     }
-  };
+
+    window.location.reload();
+  } catch (error) {
+    console.error("Delete error:", error);
+  }
+};
   const handleFavorite = async () => {
-    try {
-      await fetch(`/api/problems/${problem.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          favorite: !problem.favorite,
-        }),
-      });
+  try {
+    const response = await fetch(`/api/problems/${problem.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        favorite: !problem.favorite,
+      }),
+    });
 
-      window.location.reload();
-    } catch (error) {
-      console.log(error);
+    if (!response.ok) {
+      throw new Error("Failed to update favorite");
     }
-  };
+
+    window.location.reload();
+  } catch (error) {
+    console.error("Favorite error:", error);
+  }
+};
   const handleSolved = async () => {
-    try {
-      await fetch(`/api/problems/${problem.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          solved: !problem.solved,
-        }),
-      });
+  try {
+    const response = await fetch(`/api/problems/${problem.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        solved: !problem.solved,
+      }),
+    });
 
-      window.location.reload();
-    } catch (error) {
-      console.log(error);
+    if (!response.ok) {
+      throw new Error("Failed to update solved status");
     }
-  };
+
+    window.location.reload();
+  } catch (error) {
+    console.error("Solved error:", error);
+  }
+};
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardContent className="p-6">
