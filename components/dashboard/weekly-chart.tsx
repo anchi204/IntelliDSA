@@ -41,26 +41,32 @@ export default function WeeklyChart() {
       const problems = await response.json();
 
       const today = new Date();
-
       const data: WeeklyData[] = [];
 
+      // Last 7 days including today
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
+
+        date.setHours(0, 0, 0, 0);
         date.setDate(today.getDate() - i);
+
+        const nextDate = new Date(date);
+        nextDate.setDate(date.getDate() + 1);
 
         const dayName = date.toLocaleDateString("en-US", {
           weekday: "short",
         });
 
         const count = problems.filter((problem: any) => {
-          if (!problem.solved || !problem.solvedAt) return false;
+          if (!problem.solved || !problem.solvedAt) {
+            return false;
+          }
 
           const solvedDate = new Date(problem.solvedAt);
 
           return (
-            solvedDate.getFullYear() === date.getFullYear() &&
-            solvedDate.getMonth() === date.getMonth() &&
-            solvedDate.getDate() === date.getDate()
+            solvedDate >= date &&
+            solvedDate < nextDate
           );
         }).length;
 
@@ -84,7 +90,15 @@ export default function WeeklyChart() {
 
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={weeklyData}>
+          <BarChart
+            data={weeklyData}
+            margin={{
+              top: 10,
+              right: 10,
+              left: 0,
+              bottom: 10,
+            }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
 
             <XAxis dataKey="day" />
@@ -95,6 +109,7 @@ export default function WeeklyChart() {
 
             <Bar
               dataKey="solved"
+              name="Problems Solved"
               radius={8}
             />
           </BarChart>

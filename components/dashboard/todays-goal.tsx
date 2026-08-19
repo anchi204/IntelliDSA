@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import { Progress } from "@/components/ui/progress";
 
 const DAILY_GOAL = 5;
@@ -26,28 +32,43 @@ export default function TodaysGoal() {
 
       const today = new Date();
 
+      const startOfToday = new Date(today);
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const startOfTomorrow = new Date(startOfToday);
+      startOfTomorrow.setDate(
+        startOfToday.getDate() + 1
+      );
+
       const count = problems.filter((problem: any) => {
-        if (!problem.solved || !problem.solvedAt) return false;
+        if (!problem.solved || !problem.solvedAt) {
+          return false;
+        }
 
         const solvedDate = new Date(problem.solvedAt);
 
         return (
-          solvedDate.getFullYear() === today.getFullYear() &&
-          solvedDate.getMonth() === today.getMonth() &&
-          solvedDate.getDate() === today.getDate()
+          solvedDate >= startOfToday &&
+          solvedDate < startOfTomorrow
         );
       }).length;
 
       setSolvedToday(count);
     } catch (error) {
-      console.error("Failed to fetch today's progress:", error);
+      console.error(
+        "Failed to fetch today's progress:",
+        error
+      );
     }
   }
 
-  const progress = Math.min(
-    (solvedToday / DAILY_GOAL) * 100,
-    100
+  const completed = Math.min(
+    solvedToday,
+    DAILY_GOAL
   );
+
+  const progress =
+    (completed / DAILY_GOAL) * 100;
 
   const remaining = Math.max(
     DAILY_GOAL - solvedToday,
@@ -62,7 +83,7 @@ export default function TodaysGoal() {
 
       <CardContent>
         <p className="text-3xl font-bold">
-          {solvedToday} / {DAILY_GOAL} Problems
+          {completed} / {DAILY_GOAL} Problems
         </p>
 
         <Progress
@@ -73,7 +94,9 @@ export default function TodaysGoal() {
         <p className="mt-3 text-sm text-muted-foreground">
           {remaining > 0
             ? `Solve ${remaining} more ${
-                remaining === 1 ? "problem" : "problems"
+                remaining === 1
+                  ? "problem"
+                  : "problems"
               } to reach today's goal.`
             : "🎉 Today's goal completed!"}
         </p>

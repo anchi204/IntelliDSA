@@ -1,24 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  BookOpen,
+  CheckCircle2,
+  CircleAlert,
+  Target,
+} from "lucide-react";
 
-import ProblemCard from "@/components/problems/problem-card";
-import ProblemSearch from "@/components/problems/problem-search";
-import FilterBar from "@/components/problems/filter-bar";
-import AddProblemDialog from "@/components/problems/add-problem-dialog";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-export default function ProblemsPage() {
-  const [problems, setProblems] = useState<any[]>([]);
-  const [search, setSearch] = useState("");
-  const [difficulty, setDifficulty] = useState("");
-  const [topic, setTopic] = useState("");
-  const [platform, setPlatform] = useState("");
+type Stats = {
+  total: number;
+  solved: number;
+  unsolved: number;
+  easy: number;
+  medium: number;
+  hard: number;
+  revisionDue: number;
+};
+
+export default function ProfilePage() {
+  const [stats, setStats] = useState<Stats>({
+    total: 0,
+    solved: 0,
+    unsolved: 0,
+    easy: 0,
+    medium: 0,
+    hard: 0,
+    revisionDue: 0,
+  });
 
   useEffect(() => {
-    fetchProblems();
+    fetchStats();
   }, []);
 
-  async function fetchProblems() {
+  async function fetchStats() {
     try {
       const response = await fetch("/api/problems");
 
@@ -26,83 +48,202 @@ export default function ProblemsPage() {
         throw new Error("Failed to fetch problems");
       }
 
-      const data = await response.json();
-      setProblems(data);
+      const problems = await response.json();
+
+      const now = new Date();
+
+      setStats({
+        total: problems.length,
+
+        solved: problems.filter(
+          (problem: any) => problem.solved
+        ).length,
+
+        unsolved: problems.filter(
+          (problem: any) => !problem.solved
+        ).length,
+
+        easy: problems.filter(
+          (problem: any) =>
+            problem.difficulty === "Easy"
+        ).length,
+
+        medium: problems.filter(
+          (problem: any) =>
+            problem.difficulty === "Medium"
+        ).length,
+
+        hard: problems.filter(
+          (problem: any) =>
+            problem.difficulty === "Hard"
+        ).length,
+
+        revisionDue: problems.filter(
+          (problem: any) =>
+            problem.revisionDate &&
+            new Date(problem.revisionDate) <= now &&
+            problem.revisionCount <
+              problem.maxRevisions
+        ).length,
+      });
     } catch (error) {
-      console.error("Error fetching problems:", error);
+      console.error(
+        "Failed to fetch profile stats:",
+        error
+      );
     }
   }
 
-  const filteredProblems = problems.filter((problem) => {
-    const matchesSearch = problem.title
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesDifficulty =
-      !difficulty || problem.difficulty === difficulty;
-
-    const matchesTopic =
-      !topic || problem.topic === topic;
-
-    const matchesPlatform =
-      !platform || problem.platform === platform;
-
-    return (
-      matchesSearch &&
-      matchesDifficulty &&
-      matchesTopic &&
-      matchesPlatform
-    );
-  });
+  const solvingPercentage =
+    stats.total === 0
+      ? 0
+      : Math.round(
+          (stats.solved / stats.total) * 100
+        );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Profile Header */}
+      <Card>
+        <CardContent className="flex flex-col items-center gap-4 p-8 sm:flex-row">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted text-3xl font-bold">
+            A
+          </div>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold">
-            Problems
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold">
+              Aanchi Kansal
+            </h1>
 
-          <p className="mt-2 text-muted-foreground">
-            Track and revise your DSA problems.
+            <p className="text-sm text-muted-foreground">
+              IntelliDSA Learner
+            </p>
+
+            <p className="mt-2 text-sm text-muted-foreground">
+              Keep solving. Keep improving. 🚀
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Stats */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="p-6">
+            <BookOpen className="h-5 w-5" />
+
+            <p className="mt-4 text-sm text-muted-foreground">
+              Total Problems
+            </p>
+
+            <p className="mt-1 text-3xl font-bold">
+              {stats.total}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <CheckCircle2 className="h-5 w-5" />
+
+            <p className="mt-4 text-sm text-muted-foreground">
+              Solved
+            </p>
+
+            <p className="mt-1 text-3xl font-bold">
+              {stats.solved}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <CircleAlert className="h-5 w-5" />
+
+            <p className="mt-4 text-sm text-muted-foreground">
+              Unsolved
+            </p>
+
+            <p className="mt-1 text-3xl font-bold">
+              {stats.unsolved}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <Target className="h-5 w-5" />
+
+            <p className="mt-4 text-sm text-muted-foreground">
+              Solving Progress
+            </p>
+
+            <p className="mt-1 text-3xl font-bold">
+              {solvingPercentage}%
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Difficulty Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Difficulty Breakdown
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-lg border p-5">
+            <p className="text-sm text-muted-foreground">
+              Easy
+            </p>
+
+            <p className="mt-2 text-2xl font-bold">
+              {stats.easy}
+            </p>
+          </div>
+
+          <div className="rounded-lg border p-5">
+            <p className="text-sm text-muted-foreground">
+              Medium
+            </p>
+
+            <p className="mt-2 text-2xl font-bold">
+              {stats.medium}
+            </p>
+          </div>
+
+          <div className="rounded-lg border p-5">
+            <p className="text-sm text-muted-foreground">
+              Hard
+            </p>
+
+            <p className="mt-2 text-2xl font-bold">
+              {stats.hard}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Revision */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Revision Progress
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <p className="text-2xl font-bold">
+            {stats.revisionDue}
           </p>
-        </div>
 
-        <AddProblemDialog />
-      </div>
-
-      <div className="space-y-4">
-        <ProblemSearch
-          value={search}
-          onChange={setSearch}
-        />
-
-        <FilterBar
-          difficulty={difficulty}
-          topic={topic}
-          platform={platform}
-          onDifficultyChange={setDifficulty}
-          onTopicChange={setTopic}
-          onPlatformChange={setPlatform}
-        />
-      </div>
-
-      <div className="grid gap-6">
-        {filteredProblems.map((problem) => (
-          <ProblemCard
-            key={problem.id}
-            problem={problem}
-          />
-        ))}
-      </div>
-
-      {filteredProblems.length === 0 && (
-        <div className="rounded-xl border p-8 text-center text-muted-foreground">
-          No problems found.
-        </div>
-      )}
-
+          <p className="mt-1 text-sm text-muted-foreground">
+            Problems currently due for revision
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
