@@ -9,22 +9,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function AIInsightCard() {
-  const [insight, setInsight] = useState(
-    "Analyzing your problem-solving activity..."
+export default function AIRevisionCard() {
+  const [recommendation, setRecommendation] = useState(
+    "Checking your revision schedule..."
   );
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    generateInsight();
+    generateRecommendation();
   }, []);
 
-  async function generateInsight() {
+  async function generateRecommendation() {
     try {
       setLoading(true);
 
-      // Get user's problems
       const response = await fetch("/api/problems");
 
       if (!response.ok) {
@@ -33,8 +32,7 @@ export default function AIInsightCard() {
 
       const problems = await response.json();
 
-      // Send problems to AI API
-      const aiResponse = await fetch("/api/ai/insight", {
+      const aiResponse = await fetch("/api/ai/revision", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,19 +43,25 @@ export default function AIInsightCard() {
       });
 
       if (!aiResponse.ok) {
-        throw new Error("Failed to generate AI insight");
+        throw new Error(
+          "Failed to generate revision recommendation"
+        );
       }
 
-      const aiData = await aiResponse.json();
+      const data = await aiResponse.json();
 
-      setInsight(
-        aiData.insight || "No insight available right now."
+      setRecommendation(
+        data.recommendation ||
+          "No revision recommendation available."
       );
     } catch (error) {
-      console.error("Failed to generate AI insight:", error);
+      console.error(
+        "Failed to generate revision recommendation:",
+        error
+      );
 
-      setInsight(
-        "Unable to generate AI insights right now."
+      setRecommendation(
+        "Unable to generate revision recommendations right now."
       );
     } finally {
       setLoading(false);
@@ -67,14 +71,14 @@ export default function AIInsightCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>AI Insight 🧠</CardTitle>
+        <CardTitle>AI Revision Plan 🔄</CardTitle>
       </CardHeader>
 
       <CardContent>
         <p className="leading-7 text-muted-foreground">
           {loading
-            ? "Analyzing your problem-solving activity..."
-            : insight}
+            ? "Checking your revision schedule..."
+            : recommendation}
         </p>
       </CardContent>
     </Card>

@@ -6,6 +6,7 @@ import WeeklyChart from "@/components/dashboard/weekly-chart";
 import TodaysGoal from "@/components/dashboard/todays-goal";
 import AIInsightCard from "@/components/dashboard/ai-insight-card";
 import RecentActivity from "@/components/dashboard/recent_activity";
+import AIRevisionCard from "@/components/dashboard/ai-revision-card";
 import { useEffect, useState } from "react";
 import {
   BookOpen,
@@ -160,6 +161,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <TodaysGoal />
           <AIInsightCard />
+          <AIRevisionCard />
         </div>
       </div>
 

@@ -10,6 +10,8 @@ export const problems: Problem[] = [
     solved: true,
     favorite: true,
     revisionDate: "Tomorrow",
+    revisionCount: 0,
+    maxRevisions: 0,
   },
   {
     id: 2,
@@ -20,6 +22,8 @@ export const problems: Problem[] = [
     solved: true,
     favorite: false,
     revisionDate: "3 Days",
+    revisionCount: 0,
+    maxRevisions: 3,
   },
   {
     id: 3,
@@ -30,5 +34,7 @@ export const problems: Problem[] = [
     solved: false,
     favorite: false,
     revisionDate: "Not Scheduled",
+    revisionCount: 0,
+    maxRevisions: 5,
   },
 ];
