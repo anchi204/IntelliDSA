@@ -19,7 +19,45 @@ export default function AnalyticsPage() {
 
   return <div className="mx-auto max-w-7xl space-y-8">
     <div><p className="text-sm font-medium text-primary">PERFORMANCE</p><h1 className="mt-1 text-3xl font-bold tracking-tight">Analytics</h1><p className="mt-2 text-muted-foreground">Understand your DSA progress and find the areas that deserve more practice.</p></div>
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[[BarChart3,"Tracked problems",problems.length],[CheckCircle2,"Solved",solved],[Target,"Completion",`${completion}%`],[TrendingUp,"Revision cycles",revisions]].map(([Icon,label,value]) => <Card key={String(label)}><CardContent className="p-5"><div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">{String(label)}</span><Icon className="h-5 w-5 text-primary" /></div><p className="mt-3 text-3xl font-bold">{loading ? "—" : String(value)}</p></CardContent></Card>)}</div>
+   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  {[
+    {
+      Icon: BarChart3,
+      label: "Tracked problems",
+      value: problems.length,
+    },
+    {
+      Icon: CheckCircle2,
+      label: "Solved",
+      value: solved,
+    },
+    {
+      Icon: Target,
+      label: "Completion",
+      value: `${completion}%`,
+    },
+    {
+      Icon: TrendingUp,
+      label: "Revision cycles",
+      value: revisions,
+    },
+  ].map(({ Icon, label, value }) => (
+    <Card key={label}>
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {label}
+          </span>
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+
+        <p className="mt-3 text-3xl font-bold">
+          {loading ? "—" : value}
+        </p>
+      </CardContent>
+    </Card>
+  ))}
+</div>
     <div className="grid gap-6 lg:grid-cols-2">
       <Card><CardHeader><CardTitle>Difficulty performance</CardTitle><p className="text-sm text-muted-foreground">How your solved problems are distributed.</p></CardHeader><CardContent className="space-y-6">{difficulty.map((item) => { const pct = item.total ? Math.round(item.solved / item.total * 100) : 0; return <div key={item.name}><div className="mb-2 flex justify-between text-sm"><span className="font-medium">{item.name}</span><span className="text-muted-foreground">{item.solved} solved · {item.total} tracked</span></div><div className="h-2.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} /></div><p className="mt-1 text-right text-xs text-muted-foreground">{pct}% completion</p></div>})}</CardContent></Card>
       <Card><CardHeader><CardTitle>Topic performance</CardTitle><p className="text-sm text-muted-foreground">Your strongest and weakest tracked topics.</p></CardHeader><CardContent>{topics.length === 0 ? <div className="py-10 text-center text-sm text-muted-foreground">Add problems to unlock topic analytics.</div> : <div className="space-y-2">{topics.slice(0, 8).map(([topic, value]) => { const pct = value.total ? Math.round(value.solved / value.total * 100) : 0; return <div key={topic} className="rounded-xl border p-3"><div className="flex justify-between text-sm"><span className="font-medium">{topic}</span><span className="text-muted-foreground">{value.solved}/{value.total}</span></div><div className="mt-2 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} /></div></div>})}</div>}</CardContent></Card>
