@@ -8,19 +8,24 @@ datasource db {
 }
 
 model Problem {
-  id           Int       @id @default(autoincrement())
-  title        String
-  platform     String
-  difficulty   String
-  topic        String
-  solved       Boolean   @default(false)
-  favorite     Boolean   @default(false)
+  id            Int       @id @default(autoincrement())
+  title         String
+  platform      String
+  difficulty    String
+  topic         String
+  link          String?
+  solved        Boolean   @default(false)
+  favorite      Boolean   @default(false)
+  revisionDate  DateTime?
+  revisionCount Int       @default(0)
+  maxRevisions  Int       @default(0)
+  solvedAt      DateTime?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  revisionDate DateTime?
-  revisionCount Int      @default(0)
-  maxRevisions  Int      @default(0)
-
-  solvedAt     DateTime?
-  notes        String?
-  createdAt    DateTime  @default(now())
+  @@index([solved])
+  @@index([revisionDate])
+  @@index([topic])
+  @@index([difficulty])
 }
