@@ -1,0 +1,11 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type Problem = { id: number; title: string; topic: string; difficulty: string };
+export default function AIHintPage() {
+  const [problems, setProblems] = useState<Problem[]>([]); const [id, setId] = useState(""); const [question, setQuestion] = useState(""); const [content, setContent] = useState(""); const [loading, setLoading] = useState(false); const [error, setError] = useState("");
+  useEffect(() => { fetch("/api/problems").then(async (r) => r.ok ? setProblems(await r.json()) : undefined).catch(() => undefined); }, []);
+  async function getHint() { setLoading(true); setError(""); try { const res = await fetch("/api/ai/mentor", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "hint", problemId: Number(id), question }) }); const data = await res.json(); if (!res.ok) throw new Error(data.message || "Unable to get hint"); setContent(data.content); } catch (e) { setError(e instanceof Error ? e.message : "Unable to get hint"); } finally { setLoading(false); } }
+  return <div className="mx-auto max-w-3xl space-y-6"><div><h1 className="text-3xl font-bold">AI Problem Hint</h1><p className="mt-1 text-muted-foreground">Get progressive guidance without immediately revealing the solution.</p></div><div className="space-y-4 rounded-xl border bg-card p-6"><select value={id} onChange={(e) => setId(e.target.value)} className="w-full rounded-lg border bg-background px-3 py-2.5"><option value="">Select a problem</option>{problems.map((p) => <option key={p.id} value={p.id}>{p.title} · {p.difficulty} · {p.topic}</option>)}</select><textarea value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={4000} placeholder="What are you stuck on? (optional)" className="min-h-28 w-full rounded-lg border bg-background px-3 py-2.5" /><button disabled={!id || loading} onClick={getHint} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50">{loading ? "Thinking..." : "Get Hint"}</button>{error && <p className="text-sm text-destructive">{error}</p>}</div>{content && <div className="whitespace-pre-wrap rounded-xl border bg-card p-6 leading-7">{content}</div>}</div>;
+}

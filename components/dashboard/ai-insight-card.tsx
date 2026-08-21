@@ -1,82 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Brain, RefreshCw } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function AIInsightCard() {
-  const [insight, setInsight] = useState(
-    "Analyzing your problem-solving activity..."
-  );
-
+  const [text, setText] = useState("Generating a personalized insight...");
+  const [isAI, setIsAI] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    generateInsight();
-  }, []);
-
-  async function generateInsight() {
+  async function fetchInsight() {
+    setLoading(true);
     try {
-      setLoading(true);
-
-      // Get user's problems
-      const response = await fetch("/api/problems");
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch problems");
-      }
-
-      const problems = await response.json();
-
-      // Send problems to AI API
-      const aiResponse = await fetch("/api/ai/insight", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          problems,
-        }),
-      });
-
-      if (!aiResponse.ok) {
-        throw new Error("Failed to generate AI insight");
-      }
-
-      const aiData = await aiResponse.json();
-
-      setInsight(
-        aiData.insight || "No insight available right now."
-      );
-    } catch (error) {
-      console.error("Failed to generate AI insight:", error);
-
-      setInsight(
-        "Unable to generate AI insights right now."
-      );
-    } finally {
-      setLoading(false);
-    }
+      const response = await fetch("/api/ai/insight", { cache: "no-store" });
+      const data = await response.json();
+      setIsAI(Boolean(data.available));
+      setText(data.available ? data.insight : (data.fallback || data.message || "AI insights are currently unavailable."));
+    } catch { setIsAI(false); setText("AI insights are currently unavailable. Check your server configuration and try again."); }
+    finally { setLoading(false); }
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>AI Insight 🧠</CardTitle>
-      </CardHeader>
+  useEffect(() => { void fetchInsight(); }, []);
 
-      <CardContent>
-        <p className="leading-7 text-muted-foreground">
-          {loading
-            ? "Analyzing your problem-solving activity..."
-            : insight}
-        </p>
-      </CardContent>
-    </Card>
-  );
+  return <Card>
+    <CardHeader className="flex flex-row items-center justify-between"><CardTitle className="flex items-center gap-2"><Brain className="h-5 w-5" />{isAI ? "AI Insight" : "Tracker Insight"}</CardTitle><Button variant="ghost" size="icon-sm" onClick={() => void fetchInsight()} disabled={loading} aria-label="Refresh insight"><RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /></Button></CardHeader>
+    <CardContent><p className="whitespace-pre-line leading-7 text-muted-foreground">{text}</p></CardContent>
+  </Card>;
 }
