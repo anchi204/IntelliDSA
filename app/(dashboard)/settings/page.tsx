@@ -1,7 +1,5 @@
-export default function DashboardPage() {
-  return (
-    <div className="p-8 text-3xl font-bold">
-      Settings
-    </div>
-  );
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function SettingsPage() {
+  return <div className="space-y-6"><div><h1 className="text-2xl font-bold">Settings</h1><p className="mt-1 text-sm text-muted-foreground">Configuration and tracker behavior.</p></div><Card><CardHeader><CardTitle>Revision scheduling</CardTitle></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground"><p>Medium problems receive up to 3 revision cycles and Hard problems receive up to 5 cycles.</p><p>Each revision is scheduled 4 days after the previous completion.</p><p>Easy problems do not receive automatic revision cycles.</p></CardContent></Card><Card><CardHeader><CardTitle>AI configuration</CardTitle></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground"><p>AI insights run server-side and never expose your API key to the browser.</p><p>Configure <code className="rounded bg-muted px-1">OPENAI_API_KEY</code> locally to enable personalized AI analysis.</p><p>Optionally set <code className="rounded bg-muted px-1">OPENAI_MODEL</code>; the default is gpt-4o-mini.</p></CardContent></Card></div>;
 }
