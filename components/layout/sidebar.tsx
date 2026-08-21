@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/common/logo";
-import { LayoutDashboard, BookOpen, BarChart3, User, Settings } from "lucide-react";
+import { LayoutDashboard, BookOpen, BarChart3, User, Settings, Sparkles } from "lucide-react";
 
 const links = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Problems", href: "/problems", icon: BookOpen },
+  { name: "AI Mentor", href: "/ai", icon: Sparkles },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Profile", href: "/profile", icon: User },
   { name: "Settings", href: "/settings", icon: Settings },
