@@ -1,98 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Brain, RefreshCw } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function AIInsightCard() {
-  const [insight, setInsight] = useState(
-    "Analyzing your problem-solving activity..."
-  );
-
-  useEffect(() => {
-    fetchInsight();
-  }, []);
+  const [text, setText] = useState("Generating a personalized insight...");
+  const [isAI, setIsAI] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   async function fetchInsight() {
+    setLoading(true);
     try {
-      const response = await fetch("/api/problems");
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch problems");
-      }
-
-      const problems = await response.json();
-
-      if (problems.length === 0) {
-        setInsight(
-          "Start solving problems to get personalized insights."
-        );
-        return;
-      }
-
-      const solvedProblems = problems.filter(
-        (problem: any) => problem.solved
-      );
-
-      if (solvedProblems.length === 0) {
-        setInsight(
-          "You haven't solved any problems yet. Start with an Easy problem and build your consistency."
-        );
-        return;
-      }
-
-      // Count solved problems by topic
-      const topicCount: Record<string, number> = {};
-
-      solvedProblems.forEach((problem: any) => {
-        topicCount[problem.topic] =
-          (topicCount[problem.topic] || 0) + 1;
-      });
-
-      const strongestTopic = Object.entries(topicCount).sort(
-        (a, b) => b[1] - a[1]
-      )[0];
-
-      const unsolvedProblems = problems.filter(
-        (problem: any) => !problem.solved
-      );
-
-      if (unsolvedProblems.length > 0) {
-        setInsight(
-          `You've solved ${solvedProblems.length} ${
-            solvedProblems.length === 1 ? "problem" : "problems"
-          } so far. ${strongestTopic[0]} is currently your strongest topic. Keep practicing your ${unsolvedProblems.length} remaining problems to build consistency.`
-        );
-      } else {
-        setInsight(
-          `Great work! You've solved all ${solvedProblems.length} problems in your tracker. ${strongestTopic[0]} is your strongest topic right now.`
-        );
-      }
-    } catch (error) {
-      console.error("Failed to generate insight:", error);
-
-      setInsight(
-        "Unable to generate insights right now."
-      );
-    }
+      const response = await fetch("/api/ai/insight", { cache: "no-store" });
+      const data = await response.json();
+      setIsAI(Boolean(data.available));
+      setText(data.available ? data.insight : (data.fallback || data.message || "AI insights are currently unavailable."));
+    } catch { setIsAI(false); setText("AI insights are currently unavailable. Check your server configuration and try again."); }
+    finally { setLoading(false); }
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>AI Insight 🧠</CardTitle>
-      </CardHeader>
+  useEffect(() => { void fetchInsight(); }, []);
 
-      <CardContent>
-        <p className="leading-7 text-muted-foreground">
-          {insight}
-        </p>
-      </CardContent>
-    </Card>
-  );
+  return <Card>
+    <CardHeader className="flex flex-row items-center justify-between"><CardTitle className="flex items-center gap-2"><Brain className="h-5 w-5" />{isAI ? "AI Insight" : "Tracker Insight"}</CardTitle><Button variant="ghost" size="icon-sm" onClick={() => void fetchInsight()} disabled={loading} aria-label="Refresh insight"><RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /></Button></CardHeader>
+    <CardContent><p className="whitespace-pre-line leading-7 text-muted-foreground">{text}</p></CardContent>
+  </Card>;
 }
