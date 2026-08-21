@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const protectedPaths = ["/dashboard", "/problems", "/analytics", "/profile", "/settings"];
+const protectedPaths = ["/dashboard", "/problems", "/analytics", "/profile", "/settings", "/ai"];
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   if (!protectedPaths.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) return NextResponse.next();
@@ -9,4 +9,4 @@ export function proxy(request: NextRequest) {
   }
   return NextResponse.next();
 }
-export const config = { matcher: ["/dashboard/:path*", "/problems/:path*", "/analytics/:path*", "/profile/:path*", "/settings/:path*"] };
+export const config = { matcher: ["/dashboard/:path*", "/problems/:path*", "/analytics/:path*", "/profile/:path*", "/settings/:path*", "/ai/:path*"] };
