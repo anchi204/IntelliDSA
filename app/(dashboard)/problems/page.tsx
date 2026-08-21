@@ -18,6 +18,7 @@ export default function ProblemsPage() {
   const [difficulty, setDifficulty] = useState("");
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState("");
+  const [status, setStatus] = useState("");
   const [sort, setSort] = useState<SortKey>("newest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -42,7 +43,8 @@ export default function ProblemsPage() {
     const filtered = problems.filter((problem) => {
       const query = search.toLowerCase().trim();
       const matchesSearch = !query || [problem.title, problem.topic, problem.platform].some((value) => value.toLowerCase().includes(query));
-      return matchesSearch && (!difficulty || problem.difficulty === difficulty) && (!topic || problem.topic === topic) && (!platform || problem.platform === platform);
+      const matchesStatus = !status || (status === "solved" && problem.solved) || (status === "unsolved" && !problem.solved) || (status === "favorite" && problem.favorite);
+      return matchesSearch && matchesStatus && (!difficulty || problem.difficulty === difficulty) && (!topic || problem.topic === topic) && (!platform || problem.platform === platform);
     });
     return filtered.sort((a, b) => {
       if (sort === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -50,7 +52,7 @@ export default function ProblemsPage() {
       if (sort === "revision") return Number(!!b.revisionDate) - Number(!!a.revisionDate) || (b.revisionCount - a.revisionCount);
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [problems, search, difficulty, topic, platform, sort]);
+  }, [problems, search, difficulty, topic, platform, status, sort]);
 
   function updateProblem(updated: Problem) { setProblems((current) => current.map((p) => p.id === updated.id ? updated : p)); }
   function deleteProblem(id: number) { setProblems((current) => current.filter((p) => p.id !== id)); }
@@ -65,7 +67,7 @@ export default function ProblemsPage() {
       <Card><CardContent className="space-y-4 p-4 sm:p-5">
         <ProblemSearch value={search} onChange={setSearch} />
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2"><Filter className="h-4 w-4 text-muted-foreground" /><FilterBar difficulty={difficulty} topic={topic} platform={platform} topics={topics} platforms={platforms} onDifficultyChange={setDifficulty} onTopicChange={setTopic} onPlatformChange={setPlatform} /></div>
+          <div className="flex items-center gap-2"><Filter className="h-4 w-4 text-muted-foreground" /><FilterBar difficulty={difficulty} topic={topic} platform={platform} status={status} topics={topics} platforms={platforms} onDifficultyChange={setDifficulty} onTopicChange={setTopic} onPlatformChange={setPlatform} onStatusChange={setStatus} /></div>
           <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="rounded-lg border bg-background px-3 py-2 text-sm"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="difficulty">Difficulty</option><option value="revision">Revision priority</option></select>
         </div>
       </CardContent></Card>
