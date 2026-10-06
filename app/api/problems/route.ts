@@ -10,15 +10,27 @@ const problemSchema = z.object({
   topic: z.string().trim().min(1).max(100),
   link: z.string().trim().url().max(1000).optional().or(z.literal("")),
   notes: z.string().max(5000).optional().or(z.literal("")),
-  revisionDate: z.coerce.date().nullable().optional(),
-  maxRevisions: z.number().int().min(0).max(50).optional(),
+  revisionEnabled: z.boolean().optional(),
+  maxRevisions: z.number().int().min(1).max(50).optional(),
+  revisionIntervalDays: z.number().int().min(1).max(30).optional(),
 });
 
 export async function GET() {
   try {
     const user = await requireUser();
-    const problems = await prisma.problem.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } });
-    return NextResponse.json(problems);
+    const problems = await prisma.problem.findMany({
+      where: { userId: user.id },
+      include: {
+        _count: { select: { attempts: true, revisions: true } },
+        attempts: { orderBy: { attemptedAt: "desc" }, take: 1, select: { solved: true, attemptedAt: true } },
+        revisions: { orderBy: { revisedAt: "desc" }, take: 1, select: { result: true, revisedAt: true, nextRevisionDate: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(problems.map(function(p) {
+      return { ...p, attempted: p._count.attempts > 0, attemptCount: p._count.attempts,
+        lastAttempt: p.attempts[0] || null, lastRevision: p.revisions[0] || null };
+    }).map(function(p) { delete p._count; delete p.attempts; delete p.revisions; return p; }));
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ message: "Authentication required" }, { status: 401 });
     console.error("GET /api/problems", error);
@@ -31,8 +43,14 @@ export async function POST(req: NextRequest) {
     const user = await requireUser();
     const parsed = problemSchema.safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ message: "Invalid problem data", issues: parsed.error.flatten() }, { status: 400 });
-    const data = parsed.data;
-    const problem = await prisma.problem.create({ data: { userId: user.id, title: data.title, platform: data.platform, difficulty: data.difficulty, topic: data.topic, link: data.link || null, notes: data.notes || null, revisionDate: data.revisionDate ?? null, maxRevisions: data.maxRevisions ?? 0 } });
+    const d = parsed.data;
+    const enabled = d.revisionEnabled ?? false;
+    const problem = await prisma.problem.create({ data: {
+      userId: user.id, title: d.title, platform: d.platform, difficulty: d.difficulty, topic: d.topic,
+      link: d.link || null, notes: d.notes || null, revisionEnabled: enabled,
+      maxRevisions: enabled ? (d.maxRevisions ?? 5) : 0,
+      revisionIntervalDays: d.revisionIntervalDays ?? user.preferredRevisionIntervalDays,
+    }});
     return NextResponse.json(problem, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ message: "Authentication required" }, { status: 401 });
