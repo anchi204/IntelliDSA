@@ -61,7 +61,7 @@ export default function ProblemCard({ problem, onUpdated, onDeleted, onError }: 
         <div className="mt-4 text-sm">
           {problem.maxRevisions > 0 ? <><p className={due ? "font-medium text-red-500" : "text-muted-foreground"}>{due ? "🔴 Revision due" : problem.revisionDate ? `📅 Next revision: ${new Date(problem.revisionDate).toLocaleDateString()}` : "Revision cycle complete"}</p><p className="mt-1 text-xs text-muted-foreground">Revision {problem.revisionCount} / {problem.maxRevisions}</p></> : <p className="text-muted-foreground">No revision scheduled</p>}
         </div>
-        {due && <Button className="mt-3" size="sm" disabled={busy} onClick={() => patch({ revisionDone: true })}>✓ Revision Done</Button>}
+        {due && <div className="mt-3 flex flex-wrap gap-2"><span className="w-full text-xs text-muted-foreground">How did this revision go?</span>{(["EASY","OKAY","STRUGGLED","FAILED"] as const).map(result => <Button key={result} size="sm" variant="outline" disabled={busy} onClick={() => patch({ revisionResult: result })}>{result === "STRUGGLED" ? "Struggled" : result[0] + result.slice(1).toLowerCase()}</Button>)}</div>}
       </CardContent>
     </Card>
   );
