@@ -1,0 +1,7 @@
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
+import { NextRequest,NextResponse } from "next/server";
+import { z } from "zod";
+const schema=z.object({preferredRevisionIntervalDays:z.number().int().min(1).max(30)});
+export async function GET(){try{const u=await requireUser();return NextResponse.json({preferredRevisionIntervalDays:u.preferredRevisionIntervalDays});}catch(e){if(e instanceof Error&&e.message==="UNAUTHORIZED")return NextResponse.json({message:"Authentication required"},{status:401});return NextResponse.json({message:"Failed to load revision settings"},{status:500});}}
+export async function PATCH(req:NextRequest){try{const u=await requireUser();const p=schema.safeParse(await req.json());if(!p.success)return NextResponse.json({message:"Invalid revision setting"},{status:400});const x=await prisma.user.update({where:{id:u.id},data:{preferredRevisionIntervalDays:p.data.preferredRevisionIntervalDays}});return NextResponse.json({preferredRevisionIntervalDays:x.preferredRevisionIntervalDays});}catch(e){if(e instanceof Error&&e.message==="UNAUTHORIZED")return NextResponse.json({message:"Authentication required"},{status:401});return NextResponse.json({message:"Failed to save revision settings"},{status:500});}}

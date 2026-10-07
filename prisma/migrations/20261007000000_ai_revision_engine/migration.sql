@@ -1,0 +1,12 @@
+ALTER TABLE "User" ADD COLUMN "preferredRevisionIntervalDays" INTEGER NOT NULL DEFAULT 4;
+ALTER TABLE "Problem" ADD COLUMN "revisionEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Problem" ADD COLUMN "revisionIntervalDays" INTEGER NOT NULL DEFAULT 4;
+UPDATE "Problem" SET "revisionEnabled"=true WHERE "maxRevisions">0;
+CREATE TABLE "ProblemAttempt" ("id" SERIAL NOT NULL,"problemId" INTEGER NOT NULL,"attemptedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"solved" BOOLEAN NOT NULL DEFAULT false,"timeTaken" INTEGER,CONSTRAINT "ProblemAttempt_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "RevisionHistory" ("id" SERIAL NOT NULL,"problemId" INTEGER NOT NULL,"revisedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"revisionNumber" INTEGER NOT NULL,"result" TEXT NOT NULL,"nextRevisionDate" TIMESTAMP(3),CONSTRAINT "RevisionHistory_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "ProblemAttempt_problemId_attemptedAt_idx" ON "ProblemAttempt"("problemId","attemptedAt");
+CREATE INDEX "RevisionHistory_problemId_revisedAt_idx" ON "RevisionHistory"("problemId","revisedAt");
+CREATE INDEX "RevisionHistory_problemId_result_idx" ON "RevisionHistory"("problemId","result");
+CREATE INDEX "Problem_userId_revisionEnabled_revisionDate_idx" ON "Problem"("userId","revisionEnabled","revisionDate");
+ALTER TABLE "ProblemAttempt" ADD CONSTRAINT "ProblemAttempt_problemId_fkey" FOREIGN KEY ("problemId") REFERENCES "Problem"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "RevisionHistory" ADD CONSTRAINT "RevisionHistory_problemId_fkey" FOREIGN KEY ("problemId") REFERENCES "Problem"("id") ON DELETE CASCADE ON UPDATE CASCADE;

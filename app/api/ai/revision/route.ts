@@ -1,84 +1,19 @@
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
+import { buildUserInsights, rankCandidates } from "@/lib/revision-engine";
 import OpenAI from "openai";
-import { NextRequest, NextResponse } from "next/server";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export async function POST(req: NextRequest) {
-  try {
-    const { problems } = await req.json();
-
-    if (!Array.isArray(problems)) {
-      return NextResponse.json(
-        { message: "Problems data is required" },
-        { status: 400 }
-      );
-    }
-
-    const revisionProblems = problems.filter(
-      (problem: any) =>
-        problem.solved &&
-        problem.revisionDate &&
-        problem.revisionCount < problem.maxRevisions
-    );
-
-    if (revisionProblems.length === 0) {
-      return NextResponse.json({
-        recommendation:
-          "You have no pending revisions right now. Keep solving new problems and stay consistent with your practice.",
-      });
-    }
-
-    const revisionData = revisionProblems.map((problem: any) => ({
-      title: problem.title,
-      topic: problem.topic,
-      difficulty: problem.difficulty,
-      revisionDate: problem.revisionDate,
-      revisionCount: problem.revisionCount,
-      maxRevisions: problem.maxRevisions,
-      favorite: problem.favorite,
-    }));
-
-    const prompt = `
-You are a DSA revision assistant.
-
-The user has the following problems pending for revision:
-
-${JSON.stringify(revisionData)}
-
-Analyze them and recommend what the user should revise first.
-
-Consider:
-- Whether the revision is already due
-- Revision count
-- Difficulty
-- Topic
-- Favorite status
-
-Give a short recommendation in 2-4 sentences.
-
-Mention the most important problem or topic to revise first.
-Keep the language simple and practical.
-Do not use complicated words.
-`;
-
-    const response = await openai.responses.create({
-      model: "gpt-5-mini",
-      input: prompt,
-    });
-
-    return NextResponse.json({
-      recommendation: response.output_text,
-    });
-  } catch (error) {
-    console.error("AI REVISION ERROR:", error);
-
-    return NextResponse.json(
-      {
-        message: "Failed to generate revision recommendation",
-      },
-      { status: 500 }
-    );
-  }
+import { NextResponse } from "next/server";
+const ai=process.env.OPENAI_API_KEY?new OpenAI({apiKey:process.env.OPENAI_API_KEY}):null;
+export async function POST(){
+ try {
+  const user=await requireUser(); const now=new Date();
+  const due=await prisma.problem.findMany({where:{userId:user.id,revisionEnabled:true,solved:true,revisionDate:{lte:now}},include:{attempts:{orderBy:{attemptedAt:"desc"},take:30},revisions:{orderBy:{revisedAt:"desc"},take:10}}});
+  const candidates=due.filter((p:any)=>p.revisionCount<p.maxRevisions);
+  if(!candidates.length) return NextResponse.json({queue:[],recommendation:"No revisions are due right now. Keep solving and IntelliDSA will build the next queue automatically."});
+  const all=await prisma.problem.findMany({where:{userId:user.id},include:{attempts:{orderBy:{attemptedAt:"desc"},take:50},revisions:{orderBy:{revisedAt:"desc"},take:20}}});
+  const ranked=rankCandidates(candidates,buildUserInsights(all));
+  let queue=ranked.slice(0,6).map((x:any)=>({id:x.problem.id,title:x.problem.title,topic:x.problem.topic,difficulty:x.problem.difficulty,revisionCount:x.problem.revisionCount,maxRevisions:x.problem.maxRevisions,overdueDays:x.overdueDays,priority:x.score,reason:"Prioritized using attempts, revision outcomes, topic performance, difficulty and overdue time."}));
+  if(ai && ranked.length>1) { try { const r=await ai.responses.create({model:"gpt-5-mini",input:"Return ONLY JSON array of at most 6 problem IDs from this candidate list. Prioritize overdue items, weak topics, failures/struggles, revision urgency, then topic diversity. Never invent IDs. Candidates: "+JSON.stringify(ranked.slice(0,12).map((x:any)=>({id:x.problem.id,title:x.problem.title,topic:x.problem.topic,difficulty:x.problem.difficulty,score:x.score,overdueDays:x.overdueDays,revisionCount:x.problem.revisionCount,maxRevisions:x.problem.maxRevisions,failedAttempts:x.problem.attempts.filter((a:any)=>!a.solved).length}))) }); const ids=JSON.parse(r.output_text); if(Array.isArray(ids)){const m=new Map(queue.map((x:any)=>[x.id,x])); queue=ids.filter((id:any)=>m.has(Number(id))).slice(0,6).map((id:any)=>m.get(Number(id)));}} catch {} }
+  return NextResponse.json({queue,recommendation:"You have "+queue.length+" priority revision"+(queue.length===1?"":"s")+" today. The order adapts to your history and revision performance."});
+ } catch(e) { if(e instanceof Error&&e.message==="UNAUTHORIZED") return NextResponse.json({message:"Authentication required"},{status:401}); console.error(e); return NextResponse.json({message:"Failed to build revision queue"},{status:500}); }
 }
